@@ -18,6 +18,8 @@ class Domains extends React.Component{
         this.handleCompanySelectChange = this.handleCompanySelectChange.bind(this)
         this.handleDomainNameChange = this.handleDomainNameChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
+        this.handleDomainUpdate = this.handleDomainUpdate.bind(this)
+        this.#handleDomainDelete = this.#handleDomainDelete.bind(this)
     }
 
     componentDidMount() {
@@ -158,6 +160,69 @@ class Domains extends React.Component{
         })
     }
 
+    handleDomainUpdate = (e) => {
+        e.preventDefault()
+
+        this.updateDomain()
+    }
+
+    updateDomain = () => {
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
+        };
+        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id , requestOptions)
+            .then(async response => {
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson && await response.json();
+
+                // check for error response
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = (data && data.message) || response.status;
+                    return Promise.reject(error);
+                }
+
+                this.setState({ domainName: "", companyId: "", domain: {}})
+                this.getDomains()
+            })
+            .catch(error => {
+                //TODO: Handle Errors
+                this.setState({ errorMessage: error.toString() });
+                console.error('There was an error!', error);
+            });
+    }
+
+    #handleDomainDelete = (e) => {
+        e.preventDefault()
+        const requestOptions = {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
+        };
+
+        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id + "/delete", requestOptions)
+            .then(async response => {
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson && await response.json();
+
+                // check for error response
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = (data && data.message) || response.status;
+                    return Promise.reject(error);
+                }
+
+                this.getDomains()
+            })
+            .catch(error => {
+                //TODO: Handle Errors
+                this.setState({errorMessage: error.toString()});
+                console.error('There was an error!', error);
+            });
+    }
+
     render() {
         return (
             <div className="main_content" id="main_content">
@@ -278,13 +343,13 @@ class Domains extends React.Component{
                         </Button>
                         <Button color='red' inverted onClick={(e) => {
                             this.setOpenUpdateModal(false);
-                            this.handleCompanyDelete(e)
+                            this.#handleDomainDelete(e)
                         }}>
                             <Icon name='remove'/> Delete this entry
                         </Button>
                         <Button color='green' inverted onClick={(e) => {
                             this.setOpenUpdateModal(false);
-                            this.handleCompanyUpdate(e)
+                            this.handleDomainUpdate(e)
                         }}>
                             <Icon name='save'/> Save
                         </Button>
