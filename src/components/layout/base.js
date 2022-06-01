@@ -1,9 +1,11 @@
 import React from "react"
 import Companies from "../companies/companies";
-import { Routes, Route } from "react-router-dom";
+import {Routes, Route, useLocation} from "react-router-dom";
 import HorizontalMenu from "./horizontalmenu";
 import Home from "./home";
 import Login from "../users/login";
+import Domains from "../domains/domains";
+import SingleDomain from "../companies/singleDomain";
 
 class BaseLayout extends React.Component{
 
@@ -52,11 +54,15 @@ class BaseLayout extends React.Component{
                 <Routes>
                     <Route path="/" element={<Home />}></Route>
                     <Route path="/companies" element={<Companies />} />
+                    <Route path="/companies/domains" element={<SingleDomain />} />
                     <Route path="/login" element={<Login handleLogin={this.handleLogin} />} />
+                    <Route path="/domains" element={<Domains />}/>
                 </Routes>
             </div>
         )
     }
 }
+
+
 
 export default BaseLayout;

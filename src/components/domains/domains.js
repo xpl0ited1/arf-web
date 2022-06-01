@@ -1,36 +1,31 @@
-import React from 'react'
+import React from "react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
-import {Button, Form, Header, Icon, Modal} from "semantic-ui-react";
-import CompanyDomains from "./domains";
+import {Button, Form, Header, Icon, Modal, Select} from "semantic-ui-react";
 
-class Companies extends React.Component {
+class Domains extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            companies: [],
             openModal: false,
-            companyName: "",
-            reportingUrl: "",
+            domains: [],
+            companies: [],
+            isFormLoading: false,
             companyId: "",
-            updateOpenModal: false,
-            domainsOpenModal: false,
-            company: {}
+            domainName: "",
+            domain: {},
+            updateOpenModal: false
         }
-
-        this.handleCompanyNameChange = this.handleCompanyNameChange.bind(this)
-        this.handleReportingUrlChange = this.handleReportingUrlChange.bind(this)
+        this.handleCompanySelectChange = this.handleCompanySelectChange.bind(this)
+        this.handleDomainNameChange = this.handleDomainNameChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
-        this.handleItemClick = this.handleItemClick.bind(this)
-        this.handleCompanyUpdate = this.handleCompanyUpdate.bind(this)
-        this.handleCompanyDelete = this.handleCompanyDelete.bind(this)
-        this.handleShowCompanyDomains = this.handleShowCompanyDomains.bind(this)
     }
 
     componentDidMount() {
-        this.getCompanies()
+        this.getDomains()
     }
 
     getCompanies = () => {
+        this.setState({isFormLoading: true})
         const requestOptions = {
             method: 'GET',
         };
@@ -46,7 +41,34 @@ class Companies extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({companies: data, companyName: "", reportingUrl: "", companyId: "", company: {}})
+                this.setState({companies: data, isFormLoading: false})
+            })
+            .catch(error => {
+                //TODO: Handle Errors
+                this.setState({errorMessage: error.toString()});
+                console.error('There was an error!', error);
+            });
+    }
+
+    getDomains = () => {
+        const requestOptions = {
+            method: 'GET',
+        };
+        fetch(API_BASE + ENDPOINTS.domains, requestOptions)
+            .then(async response => {
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson && await response.json();
+
+                // check for error response
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = (data && data.message) || response.status;
+                    return Promise.reject(error);
+                }
+
+                this.setState({
+                    domains: data
+                })
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -56,34 +78,52 @@ class Companies extends React.Component {
     }
 
     setOpenModal = (set) => {
-        this.setState({openModal: set})
+        this.setState({
+            openModal: set
+        })
+
+        if (set === true){
+            this.getCompanies()
+        }
     }
 
-    setOpenUpdateModal = (set) => {
-        this.setState({updateOpenModal: set})
+    getSelectCompanies = () => {
+        let data = []
+        this.state.companies.map((company, idx) => {
+            let obj = {
+                key: idx, text: company.company_name, value: company.id
+            }
+            data.push(obj)
+        })
+        return data
     }
 
-    setDomainsOpenModal = (set) => {
-        this.setState({domainsOpenModal: set})
+    handleCompanySelectChange = (e, {value}) => {
+        e.preventDefault()
+        this.setState({
+            companyId: value
+        })
     }
 
-    handleCompanyNameChange = (e) => {
-        this.setState({companyName: e.target.value})
-    }
-
-    handleReportingUrlChange = (e) => {
-        this.setState({reportingUrl: e.target.value})
+    handleDomainNameChange = (e) => {
+        e.preventDefault()
+        this.setState({
+            domainName: e.target.value
+        })
     }
 
     handleSubmit = (e) => {
         e.preventDefault()
+        this.createNewDomain()
+    }
+
+    createNewDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
-
-        fetch(API_BASE + ENDPOINTS.companies, requestOptions)
+        fetch(API_BASE + ENDPOINTS.domains , requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -95,84 +135,28 @@ class Companies extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.getCompanies()
+                this.setState({ domainName: "", companyId: "" })
+                this.getDomains()
             })
             .catch(error => {
                 //TODO: Handle Errors
-                this.setState({errorMessage: error.toString()});
+                this.setState({ errorMessage: error.toString() });
                 console.error('There was an error!', error);
             });
     }
 
-    handleItemClick = (e, company) => {
+    handleItemClick = (e, domain) => {
         e.preventDefault()
-        this.setState({companyName: company.company_name, reportingUrl: company.bounty_url, companyId: company.id, company: company})
+        this.getCompanies()
+        this.setState({domain: domain, domainName: domain.domain_name, companyId: domain.company_id})
         this.setState({updateOpenModal: true})
     }
 
-    handleCompanyUpdate = (e) => {
-        e.preventDefault()
-        const requestOptions = {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
-        };
-
-        fetch(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId, requestOptions)
-            .then(async response => {
-                const isJson = response.headers.get('content-type')?.includes('application/json');
-                const data = isJson && await response.json();
-
-                // check for error response
-                if (!response.ok) {
-                    // get error message from body or default to response status
-                    const error = (data && data.message) || response.status;
-                    return Promise.reject(error);
-                }
-
-                this.getCompanies()
-            })
-            .catch(error => {
-                //TODO: Handle Errors
-                this.setState({errorMessage: error.toString()});
-                console.error('There was an error!', error);
-            });
+    setOpenUpdateModal = (set) => {
+        this.setState({
+            updateOpenModal: set
+        })
     }
-
-    handleCompanyDelete = (e) => {
-        e.preventDefault()
-        const requestOptions = {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
-        };
-
-        fetch(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId + "/delete", requestOptions)
-            .then(async response => {
-                const isJson = response.headers.get('content-type')?.includes('application/json');
-                const data = isJson && await response.json();
-
-                // check for error response
-                if (!response.ok) {
-                    // get error message from body or default to response status
-                    const error = (data && data.message) || response.status;
-                    return Promise.reject(error);
-                }
-
-                this.getCompanies()
-            })
-            .catch(error => {
-                //TODO: Handle Errors
-                this.setState({errorMessage: error.toString()});
-                console.error('There was an error!', error);
-            });
-    }
-
-    handleShowCompanyDomains = (e) => {
-        e.preventDefault()
-        this.setState({domainsOpenModal: true})
-    }
-
 
     render() {
         return (
@@ -181,28 +165,37 @@ class Companies extends React.Component {
                 <div className="ui divider"></div>
                 <div className="three wide column">
                     <div className="twelve wide column home_content">
-                        <h1>Companies</h1>
+                        <h1>Domains</h1>
+
                         <div className="ui labeled icon buttons">
 
                             <Modal
                                 basic
+                                dimmer="blurring"
                                 onClose={() => this.setOpenModal(false)}
                                 onOpen={() => this.setOpenModal(true)}
                                 open={this.state.openModal}
-                                size='large'
+                                size='small'
                                 trigger={<Button className="ui green inverted button"><i className="plus icon"></i>
                                     <a className="link_icon" style={{color: "whitesmoke"}} href="#">Add</a></Button>}
                             >
                                 <Header icon>
-                                    <Icon name='building'/>
-                                    Add New Company
+                                    <Icon name='sitemap'/>
+                                    Add Domain
                                 </Header>
                                 <Modal.Content>
-                                    <Form inverted>
-                                        <Form.Input fluid label='Company Name' placeholder='Hackmetrix'
-                                                    onChange={this.handleCompanyNameChange}/>
-                                        <Form.Input fluid label='Reporting URL' placeholder='https://www.hackmetrix.com'
-                                                    onChange={this.handleReportingUrlChange}/>
+                                    <Form inverted loading={this.state.isFormLoading}>
+                                        <Form.Input fluid label='Domain Name' placeholder='Hackmetrix'
+                                                    onChange={this.handleDomainNameChange} value={this.state.domainName}/>
+                                        <Form.Field
+                                            control={Select}
+                                            options={this.getSelectCompanies()}
+                                            label={{ children: 'Company', htmlFor: 'form-select-control-companies' }}
+                                            placeholder='Company'
+                                            search
+                                            searchInput={{ id: 'form-select-control-companies' }}
+                                            onChange={this.handleCompanySelectChange}
+                                        />
                                     </Form>
                                 </Modal.Content>
                                 <Modal.Actions>
@@ -221,25 +214,28 @@ class Companies extends React.Component {
                         <table className="ui inverted table">
                             <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Reporting URL</th>
+                                <th>Domain Name</th>
+                                <th>Added On</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {this.state.companies.map((company, idx) => {
+                            {this.state.domains.map((domain, idx) => {
                                 return <tr key={idx}>
                                     <td className="selectable" style={{paddingLeft: "5px"}} onClick={(e) => {
-                                        this.handleItemClick(e, company)
-                                    }}>{company.company_name}</td>
-                                    <td>{company.bounty_url}</td>
+                                        this.handleItemClick(e, domain)
+                                    }}>{domain.domain_name}</td>
+                                    <td>{domain.created_at}</td>
                                 </tr>
                             })}
                             </tbody>
                         </table>
-
-
                     </div>
                 </div>
+
+
+
+
+
 
 
                 <Modal
@@ -250,22 +246,30 @@ class Companies extends React.Component {
                     size='small'
                 >
                     <Header icon>
-                        <Icon name='building'/>
-                        Update Company
+                        <Icon name='sitemap'/>
+                        Update Domain
                         <br/>
                     </Header>
                     <center><Button color='blue' inverted onClick={(e) => {
                         //this.setOpenUpdateModal(false);
                         this.handleShowCompanyDomains(e)
                     }}>
-                        <Icon name='eye'/> View Company Assets
+                        <Icon name='eye'/> View Subdomains
                     </Button></center>
                     <Modal.Content>
-                        <Form inverted>
-                            <Form.Input fluid label='Company Name' placeholder='Hackmetrix'
-                                        onChange={this.handleCompanyNameChange} value={this.state.companyName}/>
-                            <Form.Input fluid label='Reporting URL' placeholder='https://www.hackmetrix.com'
-                                        onChange={this.handleReportingUrlChange} value={this.state.reportingUrl}/>
+                        <Form inverted loading={this.state.isFormLoading}>
+                            <Form.Input fluid label='Domain Name' placeholder='Hackmetrix'
+                                        onChange={this.handleDomainNameChange} value={this.state.domainName}/>
+                            <Form.Field
+                                control={Select}
+                                options={this.getSelectCompanies()}
+                                label={{ children: 'Company', htmlFor: 'form-select-control-companies' }}
+                                placeholder='Company'
+                                search
+                                searchInput={{ id: 'form-select-control-companies' }}
+                                onChange={this.handleCompanySelectChange}
+                                value={this.state.companyId}
+                            />
                         </Form>
                     </Modal.Content>
                     <Modal.Actions>
@@ -286,23 +290,14 @@ class Companies extends React.Component {
                         </Button>
                     </Modal.Actions>
 
-
-                    <CompanyDomains setDomainsOpenModal={this.setDomainsOpenModal}
-                                    domainsOpenModal={this.state.domainsOpenModal}
-                                    companyName={this.state.companyName}
-                                    companyId={this.state.companyId}
-                                    company={this.state.company}
-                    />
-
                 </Modal>
+
 
 
             </div>
         );
     }
 
-
 }
 
-export default Companies;
-
+export default Domains;
