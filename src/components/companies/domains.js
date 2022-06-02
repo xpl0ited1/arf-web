@@ -55,7 +55,7 @@ class CompanyDomains extends React.Component {
         e.preventDefault()
         //this.setState({domain: domain})
         //this.setState({updateOpenModal: true})
-        window.location = "/companies/domains?domainId=" + domain.id
+        window.location = "/company-domains?domainId=" + domain.id
     }
 
     setDomainAddOpenModal = (set) => {

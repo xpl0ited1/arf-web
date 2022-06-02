@@ -54,7 +54,7 @@ class BaseLayout extends React.Component{
                 <Routes>
                     <Route path="/" element={<Home token={this.state.token} checkLogin={this.checkIfLoggedIn}/>}></Route>
                     <Route path="/companies" element={<Companies token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
-                    <Route path="/companies/domains" element={<SingleDomain token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
+                    <Route path="/company-domains" element={<SingleDomain token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
                     <Route path="/login" element={<Login handleLogin={this.handleLogin} />} />
                     <Route path="/domains" element={<Domains token={this.state.token} checkLogin={this.checkIfLoggedIn}/>}/>
                 </Routes>
