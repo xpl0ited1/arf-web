@@ -52,11 +52,11 @@ class BaseLayout extends React.Component{
                 <HorizontalMenu isLoggedIn={this.state.loggedIn}/>
 
                 <Routes>
-                    <Route path="/" element={<Home />}></Route>
-                    <Route path="/companies" element={<Companies />} />
-                    <Route path="/companies/domains" element={<SingleDomain />} />
+                    <Route path="/" element={<Home token={this.state.token} checkLogin={this.checkIfLoggedIn}/>}></Route>
+                    <Route path="/companies" element={<Companies token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
+                    <Route path="/companies/domains" element={<SingleDomain token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
                     <Route path="/login" element={<Login handleLogin={this.handleLogin} />} />
-                    <Route path="/domains" element={<Domains />}/>
+                    <Route path="/domains" element={<Domains token={this.state.token} checkLogin={this.checkIfLoggedIn}/>}/>
                 </Routes>
             </div>
         )

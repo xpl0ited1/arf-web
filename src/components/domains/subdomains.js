@@ -16,11 +16,13 @@ class DomainSubdomains extends React.Component{
     componentDidMount() {
         //this.getDomainSubdomains(this.props.domainId)
         this.setState({subdomains: (this.props.domain != null ? (this.props.domain.subdomains ? this.props.domain.subdomains : []) : [])})
+        this.getDomainSubdomains(this.props.domainId)
     }
 
     getDomainSubdomains = (domainId) => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.domains + "/" +  domainId + "/subdomains", requestOptions)
             .then(async response => {
@@ -35,7 +37,7 @@ class DomainSubdomains extends React.Component{
                 }
 
                 this.setState({
-                    subdomains: data
+                    subdomains: (data ? data : [])
                 })
             })
             .catch(error => {
@@ -56,7 +58,7 @@ class DomainSubdomains extends React.Component{
                 open={this.props.subdomainsOpenModal}
                 size='large'
             >
-                <Modal.Header>{this.props.domainName} subdomains <br/><br/>
+                <Modal.Header>{this.props.domainName} subdomains: {this.state.subdomains.length} <br/><br/>
                     <Button color="green" inverted onClick={(e) => this.setDomainAddOpenModal(true)}><i className="plus icon"></i>Add
                         Subdomain</Button>
                 </Modal.Header>
@@ -112,6 +114,7 @@ class DomainSubdomains extends React.Component{
                             setDomainAddOpenModal={this.setDomainAddOpenModal}
                             getCompanyDomains={this.getCompanyDomains}
                             companyId={this.props.companyId}
+                            token={this.props.token}
                 />
 
             </Modal>

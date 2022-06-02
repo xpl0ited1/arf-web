@@ -30,7 +30,7 @@ class DomainsAdd extends React.Component {
     createNewDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({domain_name: this.state.domainName})
         };
         fetch(API_BASE + ENDPOINTS.companies + "/" + this.props.companyId + "/domains" , requestOptions)

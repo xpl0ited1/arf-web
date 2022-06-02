@@ -28,11 +28,13 @@ class Companies extends React.Component {
 
     componentDidMount() {
         this.getCompanies()
+        this.props.checkLogin()
     }
 
     getCompanies = () => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.companies, requestOptions)
             .then(async response => {
@@ -46,7 +48,7 @@ class Companies extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({companies: data, companyName: "", reportingUrl: "", companyId: "", company: {}})
+                this.setState({companies: (data ? data : []), companyName: "", reportingUrl: "", companyId: "", company: {}})
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -79,7 +81,7 @@ class Companies extends React.Component {
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
@@ -114,7 +116,7 @@ class Companies extends React.Component {
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
@@ -143,7 +145,7 @@ class Companies extends React.Component {
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
@@ -292,6 +294,7 @@ class Companies extends React.Component {
                                     companyName={this.state.companyName}
                                     companyId={this.state.companyId}
                                     company={this.state.company}
+                                    token={this.props.token}
                     />
 
                 </Modal>

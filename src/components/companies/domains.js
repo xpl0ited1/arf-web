@@ -23,6 +23,7 @@ class CompanyDomains extends React.Component {
     getCompanyDomains = (companyId) => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.companies + "/" + companyId, requestOptions)
             .then(async response => {
@@ -110,6 +111,7 @@ class CompanyDomains extends React.Component {
                             setDomainAddOpenModal={this.setDomainAddOpenModal}
                             getCompanyDomains={this.getCompanyDomains}
                             companyId={this.props.companyId}
+                            token={this.props.token}
                 />
 
             </Modal>

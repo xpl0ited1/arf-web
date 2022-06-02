@@ -16,6 +16,7 @@ class SingleDomain extends React.Component {
     }
 
     componentDidMount() {
+        this.props.checkLogin()
         let params = queryString.parse(document.location.search)
         if (params.domainId !== undefined) {
             this.setState({domainId: params.domainId})
@@ -31,6 +32,7 @@ class SingleDomain extends React.Component {
     getDomain = (domainId) => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": localStorage.getItem("sessionToken")}
         };
         fetch(API_BASE + ENDPOINTS.domains + "/" + domainId, requestOptions)
             .then(async response => {
@@ -61,6 +63,7 @@ class SingleDomain extends React.Component {
     getSubdomains = (domainId) => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.domains + "/" + domainId + ENDPOINTS.subdomains, requestOptions)
             .then(async response => {
@@ -92,7 +95,7 @@ class SingleDomain extends React.Component {
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 

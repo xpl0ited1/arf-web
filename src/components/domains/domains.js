@@ -26,12 +26,14 @@ class Domains extends React.Component {
 
     componentDidMount() {
         this.getDomains()
+        this.props.checkLogin()
     }
 
     getCompanies = () => {
         this.setState({isFormLoading: true})
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.companies, requestOptions)
             .then(async response => {
@@ -45,7 +47,7 @@ class Domains extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({companies: data, isFormLoading: false})
+                this.setState({companies: (data ? data : []), isFormLoading: false})
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -57,6 +59,7 @@ class Domains extends React.Component {
     getDomains = () => {
         const requestOptions = {
             method: 'GET',
+            headers: {"Authorization": this.props.token}
         };
         fetch(API_BASE + ENDPOINTS.domains, requestOptions)
             .then(async response => {
@@ -71,7 +74,7 @@ class Domains extends React.Component {
                 }
 
                 this.setState({
-                    domains: data
+                    domains: (data ? data : [])
                 })
             })
             .catch(error => {
@@ -124,7 +127,7 @@ class Domains extends React.Component {
     createNewDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
         fetch(API_BASE + ENDPOINTS.domains, requestOptions)
@@ -171,7 +174,7 @@ class Domains extends React.Component {
     updateDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
         fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id, requestOptions)
@@ -200,7 +203,7 @@ class Domains extends React.Component {
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
@@ -363,11 +366,13 @@ class Domains extends React.Component {
                     </Modal.Actions>
 
 
-                    <DomainSubdomains setSubdomainsOpenModal={this.setSubdomainsOpenModal} subdomainsOpenModal={this.state.subdomainsOpenModal} domainName={this.state.domainName} domain={this.state.domain} domainId={this.state.domainId}/>
+                    <DomainSubdomains token={this.props.token} setSubdomainsOpenModal={this.setSubdomainsOpenModal}
+                                      subdomainsOpenModal={this.state.subdomainsOpenModal}
+                                      domainName={this.state.domainName} domain={this.state.domain}
+                                      domainId={this.state.domain.id}/>
 
 
                 </Modal>
-
 
 
             </div>
