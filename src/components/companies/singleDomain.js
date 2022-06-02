@@ -17,7 +17,7 @@ class SingleDomain extends React.Component {
 
     componentDidMount() {
         this.props.checkLogin()
-        let params = queryString.parse(document.location.search)
+        let params = queryString.parse("?" + document.location.hash.split("?")[1])
         if (params.domainId !== undefined) {
             this.setState({domainId: params.domainId})
             this.getDomain(params.domainId)
