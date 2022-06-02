@@ -1,8 +1,9 @@
 import React from "react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import {Button, Form, Header, Icon, Modal, Select} from "semantic-ui-react";
+import DomainSubdomains from "./subdomains";
 
-class Domains extends React.Component{
+class Domains extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -13,7 +14,8 @@ class Domains extends React.Component{
             companyId: "",
             domainName: "",
             domain: {},
-            updateOpenModal: false
+            updateOpenModal: false,
+            subdomainsOpenModal: false
         }
         this.handleCompanySelectChange = this.handleCompanySelectChange.bind(this)
         this.handleDomainNameChange = this.handleDomainNameChange.bind(this)
@@ -84,7 +86,7 @@ class Domains extends React.Component{
             openModal: set
         })
 
-        if (set === true){
+        if (set === true) {
             this.getCompanies()
         }
     }
@@ -122,10 +124,10 @@ class Domains extends React.Component{
     createNewDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
-        fetch(API_BASE + ENDPOINTS.domains , requestOptions)
+        fetch(API_BASE + ENDPOINTS.domains, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -137,12 +139,12 @@ class Domains extends React.Component{
                     return Promise.reject(error);
                 }
 
-                this.setState({ domainName: "", companyId: "" })
+                this.setState({domainName: "", companyId: ""})
                 this.getDomains()
             })
             .catch(error => {
                 //TODO: Handle Errors
-                this.setState({ errorMessage: error.toString() });
+                this.setState({errorMessage: error.toString()});
                 console.error('There was an error!', error);
             });
     }
@@ -169,10 +171,10 @@ class Domains extends React.Component{
     updateDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
-        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id , requestOptions)
+        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -184,12 +186,12 @@ class Domains extends React.Component{
                     return Promise.reject(error);
                 }
 
-                this.setState({ domainName: "", companyId: "", domain: {}})
+                this.setState({domainName: "", companyId: "", domain: {}})
                 this.getDomains()
             })
             .catch(error => {
                 //TODO: Handle Errors
-                this.setState({ errorMessage: error.toString() });
+                this.setState({errorMessage: error.toString()});
                 console.error('There was an error!', error);
             });
     }
@@ -223,6 +225,15 @@ class Domains extends React.Component{
             });
     }
 
+    handleShowDomainSubdomains = (e) => {
+        e.preventDefault()
+        this.setState({subdomainsOpenModal: true})
+    }
+
+    setSubdomainsOpenModal = (set) => {
+        this.setState({subdomainsOpenModal: set})
+    }
+
     render() {
         return (
             <div className="main_content" id="main_content">
@@ -251,14 +262,15 @@ class Domains extends React.Component{
                                 <Modal.Content>
                                     <Form inverted loading={this.state.isFormLoading}>
                                         <Form.Input fluid label='Domain Name' placeholder='Hackmetrix'
-                                                    onChange={this.handleDomainNameChange} value={this.state.domainName}/>
+                                                    onChange={this.handleDomainNameChange}
+                                                    value={this.state.domainName}/>
                                         <Form.Field
                                             control={Select}
                                             options={this.getSelectCompanies()}
-                                            label={{ children: 'Company', htmlFor: 'form-select-control-companies' }}
+                                            label={{children: 'Company', htmlFor: 'form-select-control-companies'}}
                                             placeholder='Company'
                                             search
-                                            searchInput={{ id: 'form-select-control-companies' }}
+                                            searchInput={{id: 'form-select-control-companies'}}
                                             onChange={this.handleCompanySelectChange}
                                         />
                                     </Form>
@@ -298,11 +310,6 @@ class Domains extends React.Component{
                 </div>
 
 
-
-
-
-
-
                 <Modal
                     basic
                     onClose={() => this.setOpenUpdateModal(false)}
@@ -317,7 +324,7 @@ class Domains extends React.Component{
                     </Header>
                     <center><Button color='blue' inverted onClick={(e) => {
                         //this.setOpenUpdateModal(false);
-                        this.handleShowCompanyDomains(e)
+                        this.handleShowDomainSubdomains(e)
                     }}>
                         <Icon name='eye'/> View Subdomains
                     </Button></center>
@@ -328,10 +335,10 @@ class Domains extends React.Component{
                             <Form.Field
                                 control={Select}
                                 options={this.getSelectCompanies()}
-                                label={{ children: 'Company', htmlFor: 'form-select-control-companies' }}
+                                label={{children: 'Company', htmlFor: 'form-select-control-companies'}}
                                 placeholder='Company'
                                 search
-                                searchInput={{ id: 'form-select-control-companies' }}
+                                searchInput={{id: 'form-select-control-companies'}}
                                 onChange={this.handleCompanySelectChange}
                                 value={this.state.companyId}
                             />
@@ -354,6 +361,10 @@ class Domains extends React.Component{
                             <Icon name='save'/> Save
                         </Button>
                     </Modal.Actions>
+
+
+                    <DomainSubdomains setSubdomainsOpenModal={this.setSubdomainsOpenModal} subdomainsOpenModal={this.state.subdomainsOpenModal} domainName={this.state.domainName} domain={this.state.domain} domainId={this.state.domainId}/>
+
 
                 </Modal>
 
