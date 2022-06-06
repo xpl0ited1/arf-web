@@ -180,6 +180,7 @@ class SingleDomain extends React.Component {
                                 <th>Subdomain</th>
                                 <th>Ports</th>
                                 <th>Technologies</th>
+                                <th>Title</th>
                                 <th>Added on</th>
                             </tr>
                             </thead>
@@ -205,6 +206,7 @@ class SingleDomain extends React.Component {
                                             </Label>
                                         }) : "--"}
                                     </td>
+                                    <td>{subdomain.http_title != "" ? subdomain.http_title : "---"}</td>
                                     <td>{subdomain.created_at}</td>
                                 </tr>
                             })}

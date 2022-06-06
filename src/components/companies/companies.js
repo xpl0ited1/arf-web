@@ -193,7 +193,7 @@ class Companies extends React.Component {
                                 open={this.state.openModal}
                                 size='large'
                                 trigger={<Button className="ui green inverted button"><i className="plus icon"></i>
-                                    <a className="link_icon" style={{color: "whitesmoke"}} href="#">Add</a></Button>}
+                                    Add</Button>}
                             >
                                 <Header icon>
                                     <Icon name='building'/>
