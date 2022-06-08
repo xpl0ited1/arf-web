@@ -2,6 +2,7 @@ import React from 'react'
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import {Button, Form, Header, Icon, Modal} from "semantic-ui-react";
 import CompanyDomains from "./domains";
+import fetcher from "../../api/fetcher";
 
 class Companies extends React.Component {
     constructor(props) {
@@ -14,7 +15,10 @@ class Companies extends React.Component {
             companyId: "",
             updateOpenModal: false,
             domainsOpenModal: false,
-            company: {}
+            company: {},
+            isLoading: true,
+            loadingSave: false,
+            loadingDelete: false
         }
 
         this.handleCompanyNameChange = this.handleCompanyNameChange.bind(this)
@@ -33,10 +37,9 @@ class Companies extends React.Component {
 
     getCompanies = () => {
         const requestOptions = {
-            method: 'GET',
-            headers: {"Authorization": this.props.token}
+            method: 'GET'
         };
-        fetch(API_BASE + ENDPOINTS.companies, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -48,7 +51,16 @@ class Companies extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({companies: (data ? data : []), companyName: "", reportingUrl: "", companyId: "", company: {}})
+                this.setState({
+                    companies: (data ? data : []),
+                    companyName: "",
+                    reportingUrl: "",
+                    companyId: "",
+                    company: {},
+                    isLoading: false,
+                    loadingSave: false,
+                    loadingDelete: false
+                })
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -79,13 +91,14 @@ class Companies extends React.Component {
 
     handleSubmit = (e) => {
         e.preventDefault()
+        this.setState({loadingSave: true})
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
-        fetch(API_BASE + ENDPOINTS.companies, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -94,9 +107,10 @@ class Companies extends React.Component {
                 if (!response.ok) {
                     // get error message from body or default to response status
                     const error = (data && data.message) || response.status;
+                    this.setState({loadingSave: false})
                     return Promise.reject(error);
                 }
-
+                this.setOpenModal(false);
                 this.getCompanies()
             })
             .catch(error => {
@@ -108,19 +122,25 @@ class Companies extends React.Component {
 
     handleItemClick = (e, company) => {
         e.preventDefault()
-        this.setState({companyName: company.company_name, reportingUrl: company.bounty_url, companyId: company.id, company: company})
+        this.setState({
+            companyName: company.company_name,
+            reportingUrl: company.bounty_url,
+            companyId: company.id,
+            company: company
+        })
         this.setState({updateOpenModal: true})
     }
 
     handleCompanyUpdate = (e) => {
         e.preventDefault()
+        this.setState({loadingSave: true})
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
-        fetch(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -131,8 +151,8 @@ class Companies extends React.Component {
                     const error = (data && data.message) || response.status;
                     return Promise.reject(error);
                 }
-
                 this.getCompanies()
+                this.setOpenUpdateModal(false);
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -143,13 +163,14 @@ class Companies extends React.Component {
 
     handleCompanyDelete = (e) => {
         e.preventDefault()
+        this.setState({loadingDelete: true})
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
-        fetch(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId + "/delete", requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies + "/" + this.state.companyId + "/delete", requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -160,8 +181,8 @@ class Companies extends React.Component {
                     const error = (data && data.message) || response.status;
                     return Promise.reject(error);
                 }
-
                 this.getCompanies()
+                this.setOpenUpdateModal(false)
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -211,8 +232,7 @@ class Companies extends React.Component {
                                     <Button basic color='red' inverted onClick={() => this.setOpenModal(false)}>
                                         <Icon name='remove'/> Cancel
                                     </Button>
-                                    <Button color='green' inverted onClick={(e) => {
-                                        this.setOpenModal(false);
+                                    <Button color='green' loading={this.state.loadingSave} inverted onClick={(e) => {
                                         this.handleSubmit(e)
                                     }}>
                                         <Icon name='save'/> Save
@@ -220,7 +240,8 @@ class Companies extends React.Component {
                                 </Modal.Actions>
                             </Modal>
                         </div>
-                        <table className="ui inverted table">
+                        <table
+                            className={this.state.isLoading ? "ui loading form inverted table" : "ui inverted table"}>
                             <thead>
                             <tr>
                                 <th>Name</th>
@@ -274,14 +295,12 @@ class Companies extends React.Component {
                         <Button basic color='red' inverted onClick={() => this.setOpenUpdateModal(false)}>
                             <Icon name='remove'/> Cancel
                         </Button>
-                        <Button color='red' inverted onClick={(e) => {
-                            this.setOpenUpdateModal(false);
+                        <Button color='red' loading={this.state.loadingDelete} inverted onClick={(e) => {
                             this.handleCompanyDelete(e)
                         }}>
                             <Icon name='remove'/> Delete this entry
                         </Button>
-                        <Button color='green' inverted onClick={(e) => {
-                            this.setOpenUpdateModal(false);
+                        <Button color='green' loading={this.state.loadingSave} inverted onClick={(e) => {
                             this.handleCompanyUpdate(e)
                         }}>
                             <Icon name='save'/> Save

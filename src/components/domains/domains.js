@@ -2,6 +2,7 @@ import React from "react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import {Button, Form, Header, Icon, Modal, Select} from "semantic-ui-react";
 import DomainSubdomains from "./subdomains";
+import fetcher from "../../api/fetcher";
 
 class Domains extends React.Component {
     constructor(props) {
@@ -15,7 +16,11 @@ class Domains extends React.Component {
             domainName: "",
             domain: {},
             updateOpenModal: false,
-            subdomainsOpenModal: false
+            subdomainsOpenModal: false,
+            isDeleteLoading: false,
+            isUpdateLoading: false,
+            isSaveLoading: false,
+            isDataLoading: false
         }
         this.handleCompanySelectChange = this.handleCompanySelectChange.bind(this)
         this.handleDomainNameChange = this.handleDomainNameChange.bind(this)
@@ -25,17 +30,17 @@ class Domains extends React.Component {
     }
 
     componentDidMount() {
-        this.getDomains()
-        this.props.checkLogin()
+        if(this.props.checkLogin()){
+            this.getDomains()
+        }
     }
 
     getCompanies = () => {
         this.setState({isFormLoading: true})
         const requestOptions = {
-            method: 'GET',
-            headers: {"Authorization": this.props.token}
+            method: 'GET'
         };
-        fetch(API_BASE + ENDPOINTS.companies, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -57,11 +62,11 @@ class Domains extends React.Component {
     }
 
     getDomains = () => {
+        this.setState({isDataLoading: true})
         const requestOptions = {
-            method: 'GET',
-            headers: {"Authorization": this.props.token}
+            method: 'GET'
         };
-        fetch(API_BASE + ENDPOINTS.domains, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.domains, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -69,12 +74,14 @@ class Domains extends React.Component {
                 // check for error response
                 if (!response.ok) {
                     // get error message from body or default to response status
+                    this.setState({isDataLoading: false})
                     const error = (data && data.message) || response.status;
                     return Promise.reject(error);
                 }
 
                 this.setState({
-                    domains: (data ? data : [])
+                    domains: (data ? data : []),
+                    isDataLoading: false
                 })
             })
             .catch(error => {
@@ -121,16 +128,19 @@ class Domains extends React.Component {
 
     handleSubmit = (e) => {
         e.preventDefault()
+        this.setState({
+            isSaveLoading: true
+        })
         this.createNewDomain()
     }
 
     createNewDomain = () => {
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
-        fetch(API_BASE + ENDPOINTS.domains, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.domains, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -142,8 +152,10 @@ class Domains extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({domainName: "", companyId: ""})
+                //this.setState({domainName: "", companyId: ""})
+                this.setState({isDataLoading: true})
                 this.getDomains()
+                this.clearData()
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -172,12 +184,13 @@ class Domains extends React.Component {
     }
 
     updateDomain = () => {
+        this.setState({isUpdateLoading: true})
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({domain_name: this.state.domainName, company_id: this.state.companyId})
         };
-        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -189,8 +202,11 @@ class Domains extends React.Component {
                     return Promise.reject(error);
                 }
 
-                this.setState({domainName: "", companyId: "", domain: {}})
+                //this.setState({domainName: "", companyId: "", domain: {}})
+                this.setState({isDataLoading: true})
                 this.getDomains()
+                this.clearData()
+                this.setOpenUpdateModal(false);
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -199,15 +215,32 @@ class Domains extends React.Component {
             });
     }
 
+    clearData = () =>{
+        this.setState({
+            openModal: false,
+            isFormLoading: false,
+            companyId: "",
+            domainName: "",
+            domain: {},
+            updateOpenModal: false,
+            subdomainsOpenModal: false,
+            isDeleteLoading: false,
+            isUpdateLoading: false,
+            isSaveLoading: false,
+            isDataLoading: false
+        })
+    }
+
     #handleDomainDelete = (e) => {
         e.preventDefault()
+        this.setState({isDeleteLoading: true})
         const requestOptions = {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "Authorization": this.props.token},
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({company_name: this.state.companyName, bounty_url: this.state.reportingUrl})
         };
 
-        fetch(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id + "/delete", requestOptions)
+        fetcher(API_BASE + ENDPOINTS.domains + "/" + this.state.domain.id + "/delete", requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -220,6 +253,8 @@ class Domains extends React.Component {
                 }
 
                 this.getDomains()
+                this.setOpenUpdateModal(false);
+                this.clearData()
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -282,8 +317,8 @@ class Domains extends React.Component {
                                     <Button basic color='red' inverted onClick={() => this.setOpenModal(false)}>
                                         <Icon name='remove'/> Cancel
                                     </Button>
-                                    <Button color='green' inverted onClick={(e) => {
-                                        this.setOpenModal(false);
+                                    <Button color='green' loading={this.state.isSaveLoading} inverted onClick={(e) => {
+
                                         this.handleSubmit(e)
                                     }}>
                                         <Icon name='save'/> Save
@@ -291,7 +326,7 @@ class Domains extends React.Component {
                                 </Modal.Actions>
                             </Modal>
                         </div>
-                        <table className="ui inverted table">
+                        <table className={this.state.isDataLoading ? "ui loading form inverted table" : "ui inverted table"}>
                             <thead>
                             <tr>
                                 <th>Domain Name</th>
@@ -351,14 +386,13 @@ class Domains extends React.Component {
                         <Button basic color='red' inverted onClick={() => this.setOpenUpdateModal(false)}>
                             <Icon name='remove'/> Cancel
                         </Button>
-                        <Button color='red' inverted onClick={(e) => {
-                            this.setOpenUpdateModal(false);
+                        <Button color='red'  loading={this.state.isDeleteLoading} inverted onClick={(e) => {
                             this.#handleDomainDelete(e)
                         }}>
                             <Icon name='remove'/> Delete this entry
                         </Button>
-                        <Button color='green' inverted onClick={(e) => {
-                            this.setOpenUpdateModal(false);
+                        <Button color='green' loading={this.state.isUpdateLoading} inverted onClick={(e) => {
+
                             this.handleDomainUpdate(e)
                         }}>
                             <Icon name='save'/> Save
@@ -369,7 +403,8 @@ class Domains extends React.Component {
                     <DomainSubdomains token={this.props.token} setSubdomainsOpenModal={this.setSubdomainsOpenModal}
                                       subdomainsOpenModal={this.state.subdomainsOpenModal}
                                       domainName={this.state.domainName} domain={this.state.domain}
-                                      domainId={this.state.domain.id}/>
+                                      domainId={this.state.domain.id}
+                    domain={this.state.domain}/>
 
 
                 </Modal>

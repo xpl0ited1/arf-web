@@ -2,6 +2,7 @@ import React from "react";
 import {Button, Modal} from "semantic-ui-react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import DomainsAdd from "./domainsAdd";
+import fetcher from "../../api/fetcher";
 
 class CompanyDomains extends React.Component {
     constructor(props) {
@@ -9,23 +10,27 @@ class CompanyDomains extends React.Component {
         this.state = {
             domains: [],
             domain: {},
-            domainsAddOpenModal: false
+            domainsAddOpenModal: false,
+            isLoading: false
         }
 
         this.handleItemClick = this.handleItemClick.bind(this)
     }
 
     componentDidMount() {
+        this.setState({
+            domains: (this.props.company != null ? (this.props.company.domains ? this.props.company.domains : []) : []),
+            isLoading: false
+        })
         //this.getCompanyDomains(this.props.companyId)
-        this.setState({domains: (this.props.company != null ? (this.props.company.domains ? this.props.company.domains : []) : [])})
     }
 
     getCompanyDomains = (companyId) => {
+        this.setState({isLoading: true})
         const requestOptions = {
-            method: 'GET',
-            headers: {"Authorization": this.props.token}
+            method: 'GET'
         };
-        fetch(API_BASE + ENDPOINTS.companies + "/" + companyId, requestOptions)
+        fetcher(API_BASE + ENDPOINTS.companies + "/" + companyId, requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -41,7 +46,8 @@ class CompanyDomains extends React.Component {
                     domains: (data != null ? (data.domains ? data.domains : []) : []),
                     companyName: "",
                     reportingUrl: "",
-                    companyId: ""
+                    companyId: "",
+                    isLoading: false
                 })
             })
             .catch(error => {
@@ -74,11 +80,12 @@ class CompanyDomains extends React.Component {
                 size='large'
             >
                 <Modal.Header>{this.props.companyName} domains <br/><br/>
-                    <Button color="green" inverted onClick={(e) => this.setDomainAddOpenModal(true)}><i className="plus icon"></i>Add
+                    <Button color="green" inverted onClick={(e) => this.setDomainAddOpenModal(true)}><i
+                        className="plus icon"></i>Add
                         Domain</Button>
                 </Modal.Header>
                 <Modal.Content scrolling>
-                    <table className="ui inverted table">
+                    <table className={this.state.isLoading ? "ui loading form inverted table" : "ui inverted table"}>
                         <thead>
                         <tr>
                             <th>Domain Name</th>

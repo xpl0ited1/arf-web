@@ -1,25 +1,26 @@
 import React from "react";
-import {Button, Form, Icon, Input, Modal} from "semantic-ui-react";
+import {Button, Form, Header, Icon, Input, Modal} from "semantic-ui-react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import fetcher from "../../api/fetcher";
 
-class SubdomainsAdd extends React.Component{
+class CompanySubdomainAdd extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
             subdomainName: "",
             isLoading: false
         }
+
+        this.handleSubmit = this.handleSubmit.bind(this)
+        this.handleSubdomainNameChange = this.handleSubdomainNameChange.bind(this)
     }
 
     handleSubdomainNameChange = (e) => {
         e.preventDefault()
-        this.setState({
-            subdomainName: e.target.value
-        })
+        this.setState({subdomainName: e.target.value})
     }
 
-    handleSubdomainAdd = (e) => {
+    handleSubmit  = (e) => {
         e.preventDefault()
         this.setState({
             isLoading: true
@@ -46,7 +47,7 @@ class SubdomainsAdd extends React.Component{
                 }
                 this.setState({subdomainName: "", isLoading: false})
                 this.props.getSubdomains(this.props.domainID)
-                this.props.setSubdomainAddOpenModal(false)
+                this.props.setSubdomainAddModalOpen(false)
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -55,35 +56,41 @@ class SubdomainsAdd extends React.Component{
             });
     }
 
+
     render() {
         return (
             <Modal
-                centered={false}
-                dimmer={"blurring"}
-                onClose={() => this.props.setSubdomainAddOpenModal(false)}
-                open={this.props.subdomainsAddOpenModal}
-                size='small'
+                basic
+                onClose={() => this.props.setSubdomainAddModalOpen(false)}
+                onOpen={() => this.props.setSubdomainAddModalOpen(true)}
+                open={this.props.open}
+                size='large'
+                trigger={<Button className="ui green inverted button"><i className="plus icon"></i>
+                    Add Subdomain</Button>}
             >
-                <Modal.Header>
+                <Header icon>
+                    <Icon name='server'/>
                     Add New Subdomain
-                </Modal.Header>
+                </Header>
                 <Modal.Content>
-                    <Input label={{ basic: true, content: '.' + this.props.domain.domain_name }}
-                           labelPosition='right' placeholder='subdomain'
-                           onChange={this.handleSubdomainNameChange} value={this.state.subdomainName}/>
+                    <Form inverted>
+                        <Input label={{ basic: true, content: '.' + this.props.domain.domain_name }}
+                                    labelPosition='right' placeholder='subdomain'
+                                    onChange={this.handleSubdomainNameChange} value={this.state.subdomainName} style={{
+                                        marginLeft: "34%", textAlign: "right"
+                        }}/>
+                    </Form>
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color='red' inverted onClick={() => this.setDomainAddOpenModal(false)}>
+                    <Button basic color='red' inverted onClick={() => this.props.setSubdomainAddModalOpen(false)}>
                         <Icon name='remove'/> Cancel
                     </Button>
                     <Button color='green' loading={this.state.isLoading} inverted onClick={(e) => {
-                        this.handleSubdomainAdd(e)
+                        this.handleSubmit(e)
                     }}>
                         <Icon name='save'/> Save
                     </Button>
                 </Modal.Actions>
-
-
             </Modal>
         );
     }
@@ -91,4 +98,4 @@ class SubdomainsAdd extends React.Component{
 
 }
 
-export default SubdomainsAdd;
+export default CompanySubdomainAdd;

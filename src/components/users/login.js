@@ -1,5 +1,6 @@
 import React from "react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
+import {Button, Message} from "semantic-ui-react";
 
 class Login extends React.Component{
     constructor(props) {
@@ -7,7 +8,9 @@ class Login extends React.Component{
         this.state = {
             username: "",
             password: "",
-            token: ""
+            token: "",
+            isLoading: false,
+            errorLogin: false
         }
 
         this.handleUserNameChange = this.handleUserNameChange.bind(this)
@@ -27,7 +30,7 @@ class Login extends React.Component{
 
     handleSubmit(e) {
         e.preventDefault()
-
+        this.setState({isLoading: true})
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -42,16 +45,18 @@ class Login extends React.Component{
                 if (!response.ok) {
                     // get error message from body or default to response status
                     const error = (data && data.message) || response.status;
+                    this.setState({isLoading: false, errorLogin: true})
                     return Promise.reject(error);
                 }
 
                 this.setState({ token: data.token })
-                localStorage.setItem("sessionToken", data.token)
+                sessionStorage.setItem("sessionToken", data.token)
 
+                this.setState({isLoading: false})
                 //redirect to home
                 //TODO: handle login send state to parents
                 this.props.handleLogin(data.token)
-                window.location.pathname = "/"
+                window.location = "/#/"
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -67,7 +72,10 @@ class Login extends React.Component{
                 <div className="ui grid">
                     <div className="ui column"></div>
                     <div className="ui seven wide column justified container segment" style={{style:"whitesmoke", paddingBottom: "25px", marginTop: "100px", backgroundColor: "black", color: "whitesmoke", borderColor: "black"}}>
-
+                        <Message negative hidden={!this.state.errorLogin}>
+                            <Message.Header>Error while trying to log-in</Message.Header>
+                            <p>Wrong username/password combination</p>
+                        </Message>
                         <div className="field">
                             <label htmlFor="usuario">Username</label>
                             <div className="ui fluid input">
@@ -81,8 +89,8 @@ class Login extends React.Component{
                             </div>
                         </div>
                         <div className="actions">
-                            <input type="submit" name="commit" value="Sign In" className="ui fluid green button inverted"
-                                   data-disable-with="Sign In" onClick={this.handleSubmit}/>
+                            <Button type="submit" name="commit" value="Sign In" color={"green"} fluid inverted loading={this.state.isLoading}
+                                   data-disable-with="Sign In" onClick={this.handleSubmit}>Sign In</Button>
                         </div>
                     </div>
                     <div className="ui column"></div>

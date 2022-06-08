@@ -2,6 +2,8 @@ import React from "react";
 import {API_BASE, ENDPOINTS} from "../../api/constants";
 import {Button, Label, Modal} from "semantic-ui-react";
 import DomainsAdd from "../companies/domainsAdd";
+import SubdomainsAdd from "./subdomainsAdd";
+import fetcher from "../../api/fetcher";
 
 class DomainSubdomains extends React.Component{
     constructor(props) {
@@ -21,10 +23,9 @@ class DomainSubdomains extends React.Component{
 
     getDomainSubdomains = (domainId) => {
         const requestOptions = {
-            method: 'GET',
-            headers: {"Authorization": this.props.token}
+            method: 'GET'
         };
-        fetch(API_BASE + ENDPOINTS.domains + "/" +  domainId + "/subdomains", requestOptions)
+        fetcher(API_BASE + ENDPOINTS.domains + "/" +  domainId + "/subdomains", requestOptions)
             .then(async response => {
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson && await response.json();
@@ -47,6 +48,12 @@ class DomainSubdomains extends React.Component{
             });
     }
 
+    setSubDomainAddOpenModal = (state) => {
+        this.setState({
+            subdomainsAddOpenModal: state
+        })
+    }
+
 
     render() {
         return (
@@ -59,7 +66,7 @@ class DomainSubdomains extends React.Component{
                 size='large'
             >
                 <Modal.Header>{this.props.domainName} subdomains: {this.state.subdomains.length} <br/><br/>
-                    <Button color="green" inverted onClick={(e) => this.setDomainAddOpenModal(true)}><i className="plus icon"></i>Add
+                    <Button color="green" inverted onClick={(e) => this.setSubDomainAddOpenModal(true)}><i className="plus icon"></i>Add
                         Subdomain</Button>
                 </Modal.Header>
                 <Modal.Content scrolling>
@@ -112,11 +119,12 @@ class DomainSubdomains extends React.Component{
                     />
                 </Modal.Actions>
 
-                <DomainsAdd domainsAddOpenModal={this.state.domainsAddOpenModal}
-                            setDomainAddOpenModal={this.setDomainAddOpenModal}
-                            getCompanyDomains={this.getCompanyDomains}
-                            companyId={this.props.companyId}
+                <SubdomainsAdd subdomainsAddOpenModal={this.state.subdomainsAddOpenModal}
+                            setSubdomainAddOpenModal={this.setSubDomainAddOpenModal}
+                               domain={this.props.domain}
                             token={this.props.token}
+                               getSubdomains={this.getDomainSubdomains}
+                               domainID={this.props.domainId}
                 />
 
             </Modal>

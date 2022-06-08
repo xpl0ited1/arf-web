@@ -6,6 +6,9 @@ import Home from "./home";
 import Login from "../users/login";
 import Domains from "../domains/domains";
 import SingleDomain from "../companies/singleDomain";
+import Logout from "../users/logout";
+import AboutPage from "./about";
+import ApiKeys from "../apikeys/apikeys";
 
 class BaseLayout extends React.Component{
 
@@ -27,8 +30,8 @@ class BaseLayout extends React.Component{
         }
     }
 
-    checkIfLoggedIn(){
-        let token = localStorage.getItem("sessionToken")
+    checkIfLoggedIn = () => {
+        let token = sessionStorage.getItem("sessionToken")
         if(token != null && token !== ""){
             this.setState({token: token, loggedIn: true})
             return true
@@ -56,6 +59,9 @@ class BaseLayout extends React.Component{
                     <Route path="/companies" element={<Companies token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
                     <Route path="/company-domains" element={<SingleDomain token={this.state.token} checkLogin={this.checkIfLoggedIn}/>} />
                     <Route path="/login" element={<Login handleLogin={this.handleLogin} />} />
+                    <Route path="/logout" element={<Logout checkLogin={this.checkIfLoggedIn} />} />
+                    <Route path="/about" element={<AboutPage checkLogin={this.checkIfLoggedIn} />} />
+                    <Route path="/api-keys" element={<ApiKeys checkLogin={this.checkIfLoggedIn} />} />
                     <Route path="/domains" element={<Domains token={this.state.token} checkLogin={this.checkIfLoggedIn}/>}/>
                 </Routes>
             </div>
