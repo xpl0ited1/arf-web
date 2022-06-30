@@ -1,6 +1,6 @@
 import React from 'react'
 import {API_BASE, ENDPOINTS} from "../../api/constants";
-import {Button, Form, Header, Icon, Modal} from "semantic-ui-react";
+import {Button, Form, Header, Icon, Input, Modal} from "semantic-ui-react";
 import CompanyDomains from "./domains";
 import fetcher from "../../api/fetcher";
 
@@ -17,6 +17,7 @@ class Companies extends React.Component {
             domainsOpenModal: false,
             company: {},
             isLoading: true,
+            isSearching: false,
             loadingSave: false,
             loadingDelete: false
         }
@@ -28,6 +29,7 @@ class Companies extends React.Component {
         this.handleCompanyUpdate = this.handleCompanyUpdate.bind(this)
         this.handleCompanyDelete = this.handleCompanyDelete.bind(this)
         this.handleShowCompanyDomains = this.handleShowCompanyDomains.bind(this)
+        this.handleCompanySearch = this.handleCompanySearch.bind(this)
     }
 
     componentDidMount() {
@@ -61,6 +63,40 @@ class Companies extends React.Component {
                     loadingSave: false,
                     loadingDelete: false
                 })
+            })
+            .catch(error => {
+                //TODO: Handle Errors
+                this.setState({errorMessage: error.toString()});
+                console.error('There was an error!', error);
+            });
+    }
+
+    getCompaniesWithCallback = (callback) => {
+        const requestOptions = {
+            method: 'GET'
+        };
+        fetcher(API_BASE + ENDPOINTS.companies, requestOptions)
+            .then(async response => {
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson && await response.json();
+
+                // check for error response
+                if (!response.ok) {
+                    // get error message from body or default to response status
+                    const error = (data && data.message) || response.status;
+                    return Promise.reject(error);
+                }
+                this.setState({
+                    companies: (data ? data : []),
+                    companyName: "",
+                    reportingUrl: "",
+                    companyId: "",
+                    company: {},
+                    isLoading: false,
+                    loadingSave: false,
+                    loadingDelete: false
+                })
+                callback(data);
             })
             .catch(error => {
                 //TODO: Handle Errors
@@ -196,6 +232,33 @@ class Companies extends React.Component {
         this.setState({domainsOpenModal: true})
     }
 
+    handleCompanySearch = (e) => {
+        e.preventDefault()
+        this.getCompaniesWithCallback((data) =>{
+            /*let filtered = this.state.companies.filter((company) => {
+                if (e.target.value === ""){
+                    return company
+                }else{
+                    return company.company_name.toLowerCase().includes(e.target.value.toLowerCase())
+                }
+            })
+            this.setState({
+                companies: filtered
+            })*/
+            let filtered = []
+            data.map((company, idx) => {
+                if(company.company_name.toLowerCase().indexOf(e.target.value.toLowerCase()) > -1){
+                    filtered.push(company)
+                }
+            })
+            this.setState({
+                companies: filtered
+            })
+        })
+
+
+    }
+
 
     render() {
         return (
@@ -239,6 +302,10 @@ class Companies extends React.Component {
                                     </Button>
                                 </Modal.Actions>
                             </Modal>
+                        </div>
+                        <div>
+                            <br />
+                            <Input icon='search' placeholder='Search...' style={{width: "10vw"}} onChange={this.handleCompanySearch}/>
                         </div>
                         <table
                             className={this.state.isLoading ? "ui loading form inverted table" : "ui inverted table"}>

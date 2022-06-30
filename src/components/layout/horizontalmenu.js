@@ -16,6 +16,10 @@ class HorizontalMenu extends React.Component {
                             <li><Link to="/companies">COMPANIES</Link></li>
                             <li><Link to="/domains">DOMAINS</Link></li>
                             <li><Link to="/api-keys">API KEYS</Link></li>
+                            <li><Link to="/events">EVENTS</Link></li>
+                            <li><Link to="/scans">SCANS</Link></li>
+                            <li><Link to="/nuclei">NUCLEI TEMPLATES</Link></li>
+                            <li><Link to="/users">USERS</Link></li>
                             <li><Link to="/about">ABOUT</Link></li>
                             <li><Link to="/logout">LOGOUT</Link></li>
                         </ul>

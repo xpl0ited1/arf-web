@@ -331,6 +331,7 @@ class Domains extends React.Component {
                             <tr>
                                 <th>Domain Name</th>
                                 <th>Added On</th>
+                                <th>Subdomains</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -340,6 +341,7 @@ class Domains extends React.Component {
                                         this.handleItemClick(e, domain)
                                     }}>{domain.domain_name}</td>
                                     <td>{domain.created_at}</td>
+                                    <td>{domain.subdomains.length}</td>
                                 </tr>
                             })}
                             </tbody>

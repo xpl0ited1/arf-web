@@ -90,6 +90,7 @@ class CompanyDomains extends React.Component {
                         <tr>
                             <th>Domain Name</th>
                             <th>Added on</th>
+                            <th>Subdomains</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -99,6 +100,7 @@ class CompanyDomains extends React.Component {
                                     this.handleItemClick(e, domain)
                                 }}>{domain.domain_name}</td>
                                 <td>{domain.created_at}</td>
+                                <td>{domain.subdomains ? domain.subdomains.length : "--"}</td>
                             </tr>
                         })}
                         </tbody>
